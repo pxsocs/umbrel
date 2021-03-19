@@ -1,0 +1,19 @@
+version: "3.7"
+
+x-logging: &default-logging
+  driver: journald
+  options:
+    tag: "umbrel-app {{.Name}}"
+
+services:
+  web:
+    image: pxsocs/warden:v0.0.1
+    logging: *default-logging
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+      # Uncomment to mount your data directories inside
+      # the Docker container for storing persistent data
+      - warden:/home/warden
+    ports:
+      - 5000:5000
