@@ -1,29 +1,42 @@
 version: "3.7"
 
+x-logging: &default-logging
+  driver: journald
+  options:
+    tag: "umbrel-app {{.Name}}"
+
+volumes:
+  - /dev/tty:/dev/tty
+
 services:
-  web:
-    image: getumbrel/node_warden:latest
+  warden:
+    image: pxsocs/node_warden:latest
+    logging: *default-logging
     restart: on-failure
+    tty: true
     stop_grace_period: 1m
-    ports:
-      - 3002:3002
 
     environment:
-    # Bitcoin Core connection details
-    BITCOIN_NETWORK: $BITCOIN_NETWORK
-    BITCOIN_IP: $BITCOIN_IP
-    BTCEXP_BITCOIND_PORT: $BITCOIN_RPC_PORT
-    BTCEXP_BITCOIND_USER: $BITCOIN_RPC_USER
-    BTCEXP_BITCOIND_PASS: $BITCOIN_RPC_PASS
-    BITCOIN_P2P_PORT: $BITCOIN_P2P_PORT
-    BITCOIN_RPC_PORT: $BITCOIN_RPC_PORT
-    BITCOIN_RPC_AUTH: $BITCOIN_RPC_AUTH
-
-    # LND environment variables
-    LND_IP: $LND_IP
-    LND_GRPC_PORT: $LND_GRPC_PORT
-    LND_REST_PORT: $LND_REST_PORT
-
-    # Tor proxy environment variables
-    TOR_PROXY_IP: $TOR_PROXY_IP
-    TOR_PROXY_PORT: $TOR_PROXY_PORT
+      # Docker requirements
+      BTCEXP_HOST: 0.0.0.0
+      # Bitcoin Core
+      BTCEXP_BITCOIND_HOST: $BITCOIN_IP
+      BTCEXP_BITCOIND_PORT: $BITCOIN_RPC_PORT
+      BTCEXP_BITCOIND_USER: $BITCOIN_RPC_USER
+      BTCEXP_BITCOIND_PASS: $BITCOIN_RPC_PASS
+      # Electrum
+      BTCEXP_ADDRESS_API: electrumx
+      BTCEXP_ELECTRUMX_SERVERS: "tcp://$ELECTRUM_IP:$ELECTRUM_PORT"
+      # Log level
+      DEBUG: "btcexp:*,electrumClient"
+      # Performance
+      BTCEXP_SLOW_DEVICE_MODE: "true"
+      BTCEXP_NO_INMEMORY_RPC_CACHE: "true"
+      # Privacy
+      BTCEXP_PRIVACY_MODE: "true"
+      BTCEXP_NO_RATES: "true"
+      # Disable RPC
+      BTCEXP_RPC_ALLOWALL: "false"
+      BTCEXP_BASIC_AUTH_PASSWORD: ""
+      # BTC RPC EXPLORER IP
+      APP_BTC_RPC_EXPLORER_IP: $APP_BTC_RPC_EXPLORER_IP
